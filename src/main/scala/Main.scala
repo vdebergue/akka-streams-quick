@@ -14,22 +14,34 @@ object Main {
     // Main code
     import Streams._
 
-    // 1) Simple slow/fast consumer associations
-    // Question: How is the back pressure handled ?
+    /*
+     * 1) Simple slow/fast consumer associations
+     * Question: How is the back pressure handled ?
+     */
 
-    // val graph = fastProducer.to(slowConsumer)
+    val graph = fastProducer.to(slowConsumer)
     // val graph = slowProducer.to(slowConsumer)
     // val graph = slowProducer.to(fastConsumer)
-    val graph = fastProducer.to(fastConsumer)
+    // val graph = fastProducer.to(fastConsumer)
 
+    /*
+     * 2) Push vs Pull Producers
+     * Question: What happends when the consumer is not fast enough ?
+     */
 
-    // 2) Push vs Pull Producers
+    // val graph = fastPushProducer.to(slowConsumer)
+    // val graph = fastPushProducer.to(fastConsumer)
 
+    /*
+     * 3) multiple consumers and producers associated
+     * Question: What happends when the consumer is not fast enough ?
+     */
 
-    // 3) multiple consumers and producers associated
+    /*
+     * 4) Async parallelism
+     * Question: What happends when the consumer is not fast enough ?
+     */
 
-
-    // 4) Async parallelism
 
 
     // run the graph
@@ -47,6 +59,7 @@ object Main {
 
 object Streams {
 
+  // Simple Source/Sink
   val slowProducer: Source[String, _] =
     Source
       .tick(0.second, 1.seconds, "slow")
@@ -67,6 +80,24 @@ object Streams {
     Sink.foreach { t =>
       log("fastConsumer")(t)
     }
+
+
+  // Push Sources
+  val fastPushProducer: Source[String, _] =
+    Source.queue[String](bufferSize = 10, overflowStrategy = OverflowStrategy.dropTail)
+      .mapMaterializedValue { sourceQueue =>
+        val thread = new Thread() {
+          override def run() {
+            while(true) {
+              sourceQueue.offer(log("fastPushProducer")("fastPush"))
+              Thread.sleep(100)
+            }
+          }
+        }
+        thread.setDaemon(true)
+        thread.start()
+        sourceQueue
+      }
 
   def log[T](name: String)(t: T): T = {
     val date = java.time.LocalTime.now()
