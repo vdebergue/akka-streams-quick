@@ -12,7 +12,7 @@ object Main {
     implicit val materializer = ActorMaterializer()
 
     // Main code
-    import Streams._
+    import ExempleStreams._
 
     /*
      * 1) Simple slow/fast consumer associations
@@ -23,6 +23,8 @@ object Main {
     // val graph = slowProducer.to(slowConsumer)
     // val graph = slowProducer.to(fastConsumer)
     // val graph = fastProducer.to(fastConsumer)
+
+    // example of operations: filter, windowing, mapConcat ...
 
     /*
      * 2) Push vs Pull Producers
@@ -57,7 +59,7 @@ object Main {
   }
 }
 
-object Streams {
+object ExempleStreams {
 
   // Simple Source/Sink
   val slowProducer: Source[String, _] =
