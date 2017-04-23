@@ -12,19 +12,30 @@ object Main {
     implicit val materializer = ActorMaterializer()
 
     // Main code
-    import ExempleStreams._
+    import ExampleStreams._
+
+    // example of operations: filter, windowing, mapConcat ...
+    // val letterCount = fastProducer
+    //   .mapConcat[Char](word => word.toList)
+    //   .filter(char => char != ' ')
+    //   .groupBy(26, identity _)
+    //   .scan(0L) { (count, letter) =>
+    //     val newCount = count + 1
+    //     println(s"Got $newCount for letter $letter")
+    //     newCount
+    //   }
+    // letterCount.to(Sink.ignore).run
 
     /*
      * 1) Simple slow/fast consumer associations
      * Question: How is the back pressure handled ?
      */
 
-    val graph = fastProducer.to(slowConsumer)
+    // val graph = fastProducer.to(slowConsumer)
     // val graph = slowProducer.to(slowConsumer)
     // val graph = slowProducer.to(fastConsumer)
     // val graph = fastProducer.to(fastConsumer)
 
-    // example of operations: filter, windowing, mapConcat ...
 
     /*
      * 2) Push vs Pull Producers
@@ -38,6 +49,9 @@ object Main {
      * 3) multiple consumers and producers associated
      * Question: What happends when the consumer is not fast enough ?
      */
+
+     // val graph = (slowProducer merge fastProducer).to(slowConsumer)
+     val graph = (slowProducer merge fastProducer).to(fastConsumer)
 
     /*
      * 4) Async parallelism
@@ -59,7 +73,7 @@ object Main {
   }
 }
 
-object ExempleStreams {
+object ExampleStreams {
 
   // Simple Source/Sink
   val slowProducer: Source[String, _] =
