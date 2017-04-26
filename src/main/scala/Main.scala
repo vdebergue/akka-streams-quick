@@ -46,7 +46,7 @@ object Main {
      * Question: How is the back pressure handled ?
      */
 
-    // val graph = fastProducer.to(slowConsumer)
+    val graph = fastProducer.to(slowConsumer)
     // val graph = slowProducer.to(slowConsumer)
     // val graph = slowProducer.to(fastConsumer)
     // val graph = fastProducer.to(fastConsumer)
@@ -65,7 +65,7 @@ object Main {
      */
 
      // val graph = (slowProducer merge fastProducer).to(slowConsumer)
-     val graph = (slowProducer merge fastProducer).to(fastConsumer)
+     // val graph = (slowProducer merge fastProducer).to(fastConsumer)
 
     /*
      * Async parallelism
@@ -81,6 +81,15 @@ object Main {
     //   }
     //   .to(fastConsumer)
 
+    /*
+     * Async stages
+     * Compare the versions with async and not async
+     */
+    // val graph = Source(1 to 3)
+    //   .map { i => log("async")(s"A: $i"); i }.async
+    //   .map { i => log("async")(s"B: $i"); i }.async
+    //   .map { i => log("async")(s"C: $i"); i }.async
+    //   .to(Sink.ignore)
 
      /*
      * Error handling
