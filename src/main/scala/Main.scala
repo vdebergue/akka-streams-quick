@@ -1,3 +1,4 @@
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 
 import akka.stream._
@@ -26,8 +27,22 @@ object Main {
     //   }
     // letterCount.to(Sink.ignore).run
 
+    /** Basics */
+    val source = Source(List(1,2,3,4))
+    val sink = Sink.foreach(println)
+    val runnable = source.to(sink)
+    runnable.run()
+
+    // val flow = Flow[Int].map(x => x + 10).filter(x => x % 2 == 0)
+    // source.via(flow).runWith(sink)
+
+    // val foldingSink = Sink.fold[Int, Int](0)((x, acc) => x + acc)
+    // val foldResult: Future[Int] = source.runWith(foldingSink)
+    // val result = Await.result(foldResult, 15.seconds)
+    // println(s"Sum is $result")
+
     /*
-     * 1) Simple slow/fast consumer associations
+     * Simple slow/fast consumer associations
      * Question: How is the back pressure handled ?
      */
 
@@ -38,7 +53,7 @@ object Main {
 
 
     /*
-     * 2) Push vs Pull Producers
+     * Push vs Pull Producers
      * Question: What happends when the consumer is not fast enough ?
      */
 
@@ -46,22 +61,44 @@ object Main {
     // val graph = fastPushProducer.to(fastConsumer)
 
     /*
-     * 3) multiple consumers and producers associated
-     * Question: What happends when the consumer is not fast enough ?
+     * multiple consumers and producers associated
      */
 
      // val graph = (slowProducer merge fastProducer).to(slowConsumer)
      val graph = (slowProducer merge fastProducer).to(fastConsumer)
 
     /*
-     * 4) Async parallelism
-     * Question: What happends when the consumer is not fast enough ?
+     * Async parallelism
      */
 
+    // val graph = fastProducer
+    //   .mapAsync(4) { x =>
+    //     log("mapAsync")(x)
+    //     Future {
+    //       Thread.sleep(1000)
+    //       x
+    //     }(system.dispatcher)
+    //   }
+    //   .to(fastConsumer)
 
+
+     /*
+     * Error handling
+     * Try the graph with and without the attributes
+     */
+    // val decider: Supervision.Decider = {
+    //   case _: ArithmeticException => Supervision.Resume
+    //   case _                      => Supervision.Stop
+    // }
+    // val graph = Source(0 to 10)
+    //   .map(x => 100 / x)
+    //   .map(_.toString)
+    //   // .withAttributes(ActorAttributes.supervisionStrategy(decider))
+    //   .to(fastConsumer)
 
     // run the graph
     graph.run()
+
 
     // Shutdown properly
     println("done ? Press [Enter]")
